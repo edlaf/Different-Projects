@@ -45,12 +45,12 @@ class Auto_Encoder(nn.Module):
         latent_1 = self.encoder_1(x)
         latent_2 = self.resnet_1(latent_1, 0)
         latent_3 = self.attn_1(latent_2)
-        latent_4 = self.resnet_2(latent_3,0)
+        latent_4 = self.resnet_2(latent_3, 0)
         latent_5 = self.encoder_2(latent_4)
         latent_6 = self.decoder_1(latent_5)
-        latent_6 = self.resnet_3(latent_6)
+        latent_6 = self.resnet_3(latent_6, 0)
         latent_7 = self.attn_2(latent_6)
-        latent_8 = self.resnet_4(latent_7)
+        latent_8 = self.resnet_4(latent_7, 0)
         reconstructed = self.decoder_2(latent_8)
         return reconstructed
     
