@@ -116,37 +116,46 @@ class ResNetBlock(nn.Module):
     
 
 class AttentionBlock(nn.Module):
-
     def __init__(self, ch):
         super(AttentionBlock, self).__init__()
-
+        self.ch = ch
         self.Q = Nin(ch, ch)
         self.K = Nin(ch, ch)
         self.V = Nin(ch, ch)
-
-        self.ch = ch
-
         self.nin = Nin(ch, ch, scale=0.)
 
     def forward(self, x):
         B, C, H, W = x.shape
         assert C == self.ch
 
+        # Normalisation
         h = nn.functional.group_norm(x, num_groups=32)
-        q = self.Q(h)
-        k = self.K(h)
-        v = self.V(h)
 
-        w = torch.einsum('bchw,bcHW->bhwHW', q, k) * (int(C) ** (-0.5))  # [B, H, W, H, W]
-        w = torch.reshape(w, [B, H, W, H * W])
+        # Calcul des projections Q, K, V
+        q = self.Q(h)  # (B, C, H, W)
+        k = self.K(h)  # (B, C, H, W)
+        v = self.V(h)  # (B, C, H, W)
+
+        # Reshape pour bmm :
+        # On transforme q en (B, HW, C) et k en (B, C, HW)
+        q = q.view(B, C, H * W).permute(0, 2, 1)  # (B, HW, C)
+        k = k.view(B, C, H * W)                    # (B, C, HW)
+
+        # Calcul de la matrice d'attention : (B, HW, HW)
+        w = torch.bmm(q, k) * (C ** (-0.5))
         w = torch.nn.functional.softmax(w, dim=-1)
-        w = torch.reshape(w, [B, H, W, H, W])
 
-        h = torch.einsum('bhwHW,bcHW->bchw', w, v)
-        h = self.nin(h)
+        # Application de l'attention sur v :
+        # Reshape v en (B, C, HW), puis pondération par w
+        v = v.view(B, C, H * W)  # (B, C, HW)
+        h_attn = torch.bmm(v, w.permute(0, 2, 1))  # (B, C, HW)
+        h_attn = h_attn.view(B, C, H, W)
 
-        assert h.shape == x.shape
-        return x + h
+        # Projection finale
+        h_attn = self.nin(h_attn)
+
+        return x + h_attn
+
     
 class UNet(nn.Module):
 
