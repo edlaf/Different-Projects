@@ -110,6 +110,35 @@ class Auto_Encoder(nn.Module):
         reconstructed = self.final_upsample(decoded)           # (B, 3, 256, 256)
         return reconstructed
 
+    def encoder(self, x):
+        temb = torch.zeros(x.size(0), 512, device=x.device)
+        
+        # ----- ENCODEUR -----
+        latent_1 = self.encoder_1(x)                           # (B, 64, 128, 128)
+        latent_1 = checkpoint.checkpoint(self.resnet_1, latent_1, temb)  # (B, 64, 128, 128)
+        latent_2 = self.down_sample(latent_1)                  # (B, 64, 64, 64)
+        latent_2_small = self.down_to_16_enc(latent_2)         # (B, 64, 16, 16)
+        latent_3 = checkpoint.checkpoint(self.attn_1, latent_2_small)  # (B, 64, 16, 16)
+        latent_4 = checkpoint.checkpoint(self.resnet_2, latent_3, temb)  # (B, 64, 16, 16)
+        latent_4_big = self.up_to_32_enc(latent_4)             # (B, 64, 32, 32)
+        latent_5 = self.encoder_2(latent_4_big)
+        
+        return latent_5
+    
+    def decoder(self,x):
+        temb = torch.zeros(x.size(0), 512, device=x.device)
+        # ----- DÉCODEUR -----
+        latent_6 = self.decoder_1(x)                    # (B, 64, 64, 64)
+        latent_6_small = self.down_to_16_dec(latent_6)         # (B, 64, 16, 16)
+        latent_7 = checkpoint.checkpoint(self.resnet_3, latent_6_small, temb)  # (B, 64, 16, 16)
+        latent_8 = checkpoint.checkpoint(self.attn_2, latent_7)  # (B, 64, 16, 16)
+        latent_8_big = self.up_to_32_dec(latent_8)             # (B, 64, 32, 32)
+        latent_9 = checkpoint.checkpoint(self.resnet_4, latent_8_big, temb)  # (B, 64, 32, 32)
+        latent_10 = self.up_sample_final(latent_9)             # (B, 64, 64, 64)
+        decoded = self.decoder_2(latent_10)                    # (B, 3, 64, 64)
+        # Upsample final pour retrouver 256x256
+        reconstructed = self.final_upsample(decoded)           # (B, 3, 256, 256)
+        return reconstructed
     def loss(self, x):
         reconstructed = self.forward(x)
         nll_loss = F.l1_loss(reconstructed, x)  # suppose une réduction "mean" par défaut
