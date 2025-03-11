@@ -128,34 +128,19 @@ class AttentionBlock(nn.Module):
         B, C, H, W = x.shape
         assert C == self.ch
 
-        # Normalisation
         h = nn.functional.group_norm(x, num_groups=32)
-
-        # Calcul des projections Q, K, V
-        q = self.Q(h)  # (B, C, H, W)
-        k = self.K(h)  # (B, C, H, W)
-        v = self.V(h)  # (B, C, H, W)
-
-        print("Taille de q :", q.shape)
-        print("Taille de k :", k.shape)
-        # Reshape pour bmm :
-        # On transforme q en (B, HW, C) et k en (B, C, HW)
-        q = q.view(B, C, H * W).permute(0, 2, 1)  # (B, HW, C)
-        k = k.view(B, C, H * W)                    # (B, C, HW)
-
-        # Calcul de la matrice d'attention : (B, HW, HW)
+        q = self.Q(h)
+        k = self.K(h)
+        v = self.V(h)
+        q = q.view(B, C, H * W).permute(0, 2, 1)
+        k = k.view(B, C, H * W)
         w = torch.bmm(q, k) * (C ** (-0.5))
         w = torch.nn.functional.softmax(w, dim=-1)
-
-        # Application de l'attention sur v :
-        # Reshape v en (B, C, HW), puis pondération par w
-        v = v.view(B, C, H * W)  # (B, C, HW)
-        h_attn = torch.bmm(v, w.permute(0, 2, 1))  # (B, C, HW)
+        v = v.view(B, C, H * W)
+        h_attn = torch.bmm(v, w.permute(0, 2, 1))
         h_attn = h_attn.view(B, C, H, W)
-
-        # Projection finale
         h_attn = self.nin(h_attn)
-
+        
         return x + h_attn
 
     

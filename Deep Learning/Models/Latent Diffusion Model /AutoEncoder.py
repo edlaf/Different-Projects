@@ -102,6 +102,8 @@ def train(model, trainloader, optimizer, testloader, device, nb_epochs=10, displ
     
 def test(model, criterion, testloader, device):
     total_test_loss = 0.0
+    criterion = model.loss
+
     with torch.no_grad():
         for images, _ in tqdm(testloader):
             images = images.to(device)
