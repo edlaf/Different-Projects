@@ -14,6 +14,7 @@ class Auto_Encoder(nn.Module):
             nn.LeakyReLU(),
             nn.Conv2d(64, 64, kernel_size=1))
         self.resnet_1  = utils.ResNetBlock(64, 64)
+        self.down_sample = utils.Downsample(64)
         self.attn_1    = utils.AttentionBlock(64)
         self.resnet_2  = utils.ResNetBlock(64, 64)
         self.encoder_2 = nn.Sequential(
@@ -32,6 +33,7 @@ class Auto_Encoder(nn.Module):
             nn.Conv2d(64, 64, kernel_size=1))
         self.resnet_3 = utils.ResNetBlock(64, 64)
         self.attn_2 = utils.AttentionBlock(64)
+        self.up_sample = utils.Upsample(64)
         self.resnet_4 = utils.ResNetBlock(64, 64)
         self.decoder_2 = nn.Sequential(
             nn.Conv2d(64, 64, kernel_size=1),
@@ -46,7 +48,8 @@ class Auto_Encoder(nn.Module):
         temb = torch.zeros(x.size(0), 512, device=x.device)
         latent_1 = self.encoder_1(x)
         latent_2 = checkpoint.checkpoint(self.resnet_1, latent_1, temb)
-        latent_3 = checkpoint.checkpoint(self.attn_1, latent_2)
+        latent_2_down = self.down_sample(latent_2) 
+        latent_3 = checkpoint.checkpoint(self.attn_1, latent_2_down)
         latent_4 = checkpoint.checkpoint(self.resnet_2, latent_3, temb)
         latent_5 = self.encoder_2(latent_4)
         latent_6 = self.decoder_1(latent_5)
