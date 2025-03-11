@@ -48,14 +48,15 @@ class Auto_Encoder(nn.Module):
         temb = torch.zeros(x.size(0), 512, device=x.device)
         latent_1 = self.encoder_1(x)
         latent_2 = checkpoint.checkpoint(self.resnet_1, latent_1, temb)
-        latent_2_down = self.down_sample(latent_2) 
+        latent_2_down = self.down_sample(latent_2)
         latent_3 = checkpoint.checkpoint(self.attn_1, latent_2_down)
         latent_4 = checkpoint.checkpoint(self.resnet_2, latent_3, temb)
         latent_5 = self.encoder_2(latent_4)
         latent_6 = self.decoder_1(latent_5)
         latent_6 = checkpoint.checkpoint(self.resnet_3, latent_6, temb)
         latent_7 = checkpoint.checkpoint(self.attn_2, latent_6)
-        latent_8 = checkpoint.checkpoint(self.resnet_4, latent_7, temb)
+        latent_7_up = self.up_sample(latent_7)
+        latent_8 = checkpoint.checkpoint(self.resnet_4, latent_7_up, temb)
         reconstructed = self.decoder_2(latent_8)
         return reconstructed
 
