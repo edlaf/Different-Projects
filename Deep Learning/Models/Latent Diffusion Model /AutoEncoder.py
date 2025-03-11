@@ -102,13 +102,13 @@ def train(model, trainloader, optimizer, testloader, device, nb_epochs=10, displ
     
 def test(model, criterion, testloader, device):
     total_test_loss = 0.0
-    criterion = model.loss
+    criterion = model.loss_2
 
     with torch.no_grad():
         for images, _ in tqdm(testloader):
             images = images.to(device)
             reconstructed_images = model(images)
-            loss = criterion(reconstructed_images, images)
+            loss = criterion(images, reconstructed_images)
             total_test_loss += model.loss.item()
 
     avg_test_loss = total_test_loss / len(testloader)

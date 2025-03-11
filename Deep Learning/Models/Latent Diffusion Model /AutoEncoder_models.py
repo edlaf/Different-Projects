@@ -116,4 +116,10 @@ class Auto_Encoder(nn.Module):
         perceptual_loss = self.lpips_loss(x, reconstructed).mean()  # réduire à un scalaire
         total_loss = nll_loss + self.perceptual_weight * perceptual_loss
         return total_loss
+    
+    def loss_2(self, x, reconstructed):
+        nll_loss = F.l1_loss(reconstructed, x)  # suppose une réduction "mean" par défaut
+        perceptual_loss = self.lpips_loss(x, reconstructed).mean()  # réduire à un scalaire
+        total_loss = nll_loss + self.perceptual_weight * perceptual_loss
+        return total_loss
 
