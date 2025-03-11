@@ -12,9 +12,9 @@ class Auto_Encoder(nn.Module):
             nn.Conv2d(3, 64, kernel_size=4, stride=2, padding=1),
             nn.LeakyReLU(),
             nn.Conv2d(64, 64, kernel_size=1))
-        self.resnet_1  = utils.ResNetBlock(64, 64, temb_channels=0)
+        self.resnet_1  = utils.ResNetBlock(64, 64)
         self.attn_1    = utils.AttentionBlock(64)
-        self.resnet_2  = utils.ResNetBlock(64, 64, temb_channels=0)
+        self.resnet_2  = utils.ResNetBlock(64, 64)
         self.encoder_2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1),
             nn.LeakyReLU(),
             nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),
@@ -29,9 +29,9 @@ class Auto_Encoder(nn.Module):
             nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),
             nn.LeakyReLU(),
             nn.Conv2d(64, 64, kernel_size=1))
-        self.resnet_3 = utils.ResNetBlock(64, 64, temb_channels=0)
+        self.resnet_3 = utils.ResNetBlock(64, 64)
         self.attn_2 = utils.AttentionBlock(64)
-        self.resnet_4 = utils.ResNetBlock(64, 64, temb_channels=0)
+        self.resnet_4 = utils.ResNetBlock(64, 64)
         self.decoder_2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1),
             nn.LeakyReLU(),
             nn.Conv2d(64, 3, kernel_size=3, stride=1, padding=1),
