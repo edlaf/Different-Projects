@@ -109,7 +109,7 @@ def test(model, criterion, testloader, device):
             images = images.to(device)
             reconstructed_images = model(images)
             loss = criterion(images, reconstructed_images)
-            total_test_loss += model.loss.item()
+            total_test_loss += loss
 
     avg_test_loss = total_test_loss / len(testloader)
     print(f"Test Loss: {avg_test_loss:.7f}")
