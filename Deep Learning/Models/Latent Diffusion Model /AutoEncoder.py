@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import torchvision
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, TensorDataset
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 
@@ -13,12 +13,13 @@ def load_data(path,batch_size = 128):
     transforms.ToTensor(),
     ])
     dataset = datasets.ImageFolder(root=path, transform=transform)
+    dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
     train_size = int(0.9 * len(dataset))
     test_size = len(dataset) - train_size
     trainset, testset = random_split(dataset, [train_size, test_size])
-    trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=4)
-    testloader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=4)
-    return trainloader, testloader
+    trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=0)
+    testloader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=0)
+    return trainloader, testloader, dataloader
 
 def show(images):
 
@@ -63,7 +64,7 @@ def show_images_side_by_side(images, reconstructed_images, nrow=8, title="Origin
     
 def train(model, criterion, trainloader, optimizer, testloader,  device, nb_epochs = 10, display_interval = 5):
     model = model
-    criterion = criterion
+    criterion = model.loss
     optimizer = optimizer
     nb_params = sum([p.numel() for p in model.parameters()])
     print(f"Number of parameters of the model {nb_params}")
@@ -103,7 +104,7 @@ def train(model, criterion, trainloader, optimizer, testloader,  device, nb_epoc
             show_images_side_by_side(images_cpu[:24], reconstructed_cpu[:24])
 
     print("Training Over.")
-    return model,
+    return model
     
 def test(model, criterion, testloader, device):
     total_test_loss = 0.0
@@ -112,7 +113,40 @@ def test(model, criterion, testloader, device):
             images = images.to(device)
             reconstructed_images = model(images)
             loss = criterion(reconstructed_images, images)
-            total_test_loss += loss.item()
+            total_test_loss += model.loss.item()
 
     avg_test_loss = total_test_loss / len(testloader)
     print(f"Test Loss: {avg_test_loss:.7f}")
+    
+def Encode_data(autoencoder, device, dataloader):
+    autoencoder.eval()
+
+# Initialiser des listes pour stocker les features encodées et les labels
+    encoded_images = []
+    labels_list = []
+
+    # Désactiver le gradient (on ne fait pas d'entraînement ici)
+    with torch.no_grad():
+        for images, labels in tqdm(dataloader):  # On récupère aussi les labels
+            images = images.to(device)  # Envoyer sur GPU si disponible
+            labels = labels.to(device)  # Garder les labels aussi sur le même device
+
+            # Encoder les images avec l'AutoEncoder
+            encoded = autoencoder.encoder(images)  # Sortie de shape (16, 32, 32)
+
+            # Ajouter au dataset
+            encoded_images.append(encoded)
+            labels_list.append(labels)
+
+    # Concaténer toutes les images encodées et les labels
+    encoded_images = torch.cat(encoded_images, dim=0)  # (N, 16, 32, 32)
+    labels_list = torch.cat(labels_list, dim=0)  # (N,)
+
+    # Créer un dataset PyTorch à partir des images encodées et labels
+    encoded_dataset = TensorDataset(encoded_images, labels_list)
+
+    # Créer un DataLoader avec shuffle et batch_size=128
+    encoded_dataloader = DataLoader(encoded_dataset, batch_size=128, shuffle=True)
+
+    print(f"Nombre total d'images encodées : {len(encoded_dataset)}")
+    return encoded_dataloader
