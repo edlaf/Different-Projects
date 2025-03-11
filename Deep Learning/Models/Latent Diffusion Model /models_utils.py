@@ -95,7 +95,9 @@ class ResNetBlock(nn.Module):
         :param x: (B, C, H, W)
         :param temb: (B, dim)
         """
-
+        if not torch.is_tensor(temb):
+            # Créer un tenseur de zéros avec la dimension attendue par self.dense
+            temb = torch.zeros(x.size(0), self.dense.in_features, device=x.device)
         h = self.nonlinearity(nn.functional.group_norm(x, num_groups=32)) # chelou
         h = self.conv1(h)
 
