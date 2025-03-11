@@ -61,19 +61,14 @@ def show_images_side_by_side(images, reconstructed_images, nrow=8, title="Origin
     
     
 
-    
-def train(model, criterion, trainloader, optimizer, testloader,  device, nb_epochs = 10, display_interval = 5):
-    model = model
-    criterion = model.loss
-    optimizer = optimizer
-    nb_params = sum([p.numel() for p in model.parameters()])
+def train(model, trainloader, optimizer, testloader, device, nb_epochs=10, display_interval=5):
+    nb_params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters of the model {nb_params}")
-    
+
     test_images, _ = next(iter(testloader))
     test_images = test_images.to(device)
 
     for epoch in range(nb_epochs):
-
         model.train()
         total_loss = 0.0
         progress_bar = tqdm(trainloader, desc=f"Epoch {epoch+1}/{nb_epochs}")
@@ -81,9 +76,7 @@ def train(model, criterion, trainloader, optimizer, testloader,  device, nb_epoc
 
         for images, _ in progress_bar:
             images = images.to(device)
-            reconstructed_images = model(images)
-
-            loss = criterion(reconstructed_images, images)
+            loss = model.loss(images)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -105,6 +98,7 @@ def train(model, criterion, trainloader, optimizer, testloader,  device, nb_epoc
 
     print("Training Over.")
     return model
+
     
 def test(model, criterion, testloader, device):
     total_test_loss = 0.0
