@@ -136,6 +136,8 @@ class AttentionBlock(nn.Module):
         k = self.K(h)  # (B, C, H, W)
         v = self.V(h)  # (B, C, H, W)
 
+        print("Taille de q :", q.shape)
+        print("Taille de k :", k.shape)
         # Reshape pour bmm :
         # On transforme q en (B, HW, C) et k en (B, C, HW)
         q = q.view(B, C, H * W).permute(0, 2, 1)  # (B, HW, C)
