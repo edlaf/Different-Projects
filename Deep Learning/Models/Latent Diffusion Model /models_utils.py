@@ -1,12 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torchvision
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, random_split, TensorDataset
 import numpy as np
-import matplotlib.pyplot as plt
-from tqdm.auto import tqdm
 
 import math
 

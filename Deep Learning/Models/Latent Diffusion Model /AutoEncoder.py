@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 import torchvision
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split, TensorDataset
@@ -24,7 +23,7 @@ def load_data(path,batch_size = 128):
 def show(images):
 
     images = images.cpu().detach()
-    fig, axes = plt.subplots(5, 5, figsize=(6, 6))
+    _, axes = plt.subplots(5, 5, figsize=(6, 6))
 
     for i, ax in enumerate(axes.flat):
         img = images[i].permute(1, 2, 0).numpy()
@@ -46,13 +45,9 @@ def show_images_side_by_side(images, reconstructed_images, nrow=8, title="Origin
     if images.shape != reconstructed_images.shape:
         raise ValueError("Les tenseurs d'images doivent avoir la même forme.")
 
-    # Concaténer les images et leurs reconstructions
     stacked_images = torch.cat((images, reconstructed_images), dim=0)
-
-    # Créer une grille
     grid = torchvision.utils.make_grid(stacked_images, nrow=nrow, normalize=True, scale_each=True)
 
-    # Afficher la figure
     plt.figure(figsize=(12, 6))
     plt.imshow(grid.permute(1, 2, 0).cpu().numpy())
     plt.axis("off")
@@ -80,12 +75,9 @@ def train(model, trainloader, optimizer, testloader, device, nb_epochs=10, displ
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-
             total_loss += loss.detach().item()
             progress_bar.set_postfix(loss=total_loss / (i + 1))
             i += 1
-
-        avg_loss = total_loss / len(trainloader)
 
         model.eval()
         with torch.no_grad():
@@ -102,8 +94,8 @@ def train(model, trainloader, optimizer, testloader, device, nb_epochs=10, displ
     
 def test(model, criterion, testloader, device):
     total_test_loss = 0.0
+    model.eval()
     criterion = model.loss_2
-
     with torch.no_grad():
         for images, _ in tqdm(testloader):
             images = images.to(device)
@@ -117,31 +109,20 @@ def test(model, criterion, testloader, device):
 def Encode_data(autoencoder, device, dataloader):
     autoencoder.eval()
 
-# Initialiser des listes pour stocker les features encodées et les labels
     encoded_images = []
     labels_list = []
 
-    # Désactiver le gradient (on ne fait pas d'entraînement ici)
     with torch.no_grad():
-        for images, labels in tqdm(dataloader):  # On récupère aussi les labels
-            images = images.to(device)  # Envoyer sur GPU si disponible
-            labels = labels.to(device)  # Garder les labels aussi sur le même device
-
-            # Encoder les images avec l'AutoEncoder
-            encoded = autoencoder.encoder(images)  # Sortie de shape (16, 32, 32)
-
-            # Ajouter au dataset
+        for images, labels in tqdm(dataloader):
+            images = images.to(device)
+            labels = labels.to(device)
+            encoded = autoencoder.encoder(images)
             encoded_images.append(encoded)
             labels_list.append(labels)
 
-    # Concaténer toutes les images encodées et les labels
-    encoded_images = torch.cat(encoded_images, dim=0)  # (N, 16, 32, 32)
-    labels_list = torch.cat(labels_list, dim=0)  # (N,)
-
-    # Créer un dataset PyTorch à partir des images encodées et labels
+    encoded_images = torch.cat(encoded_images, dim=0)
+    labels_list = torch.cat(labels_list, dim=0)
     encoded_dataset = TensorDataset(encoded_images, labels_list)
-
-    # Créer un DataLoader avec shuffle et batch_size=128
     encoded_dataloader = DataLoader(encoded_dataset, batch_size=128, shuffle=True)
 
     print(f"Nombre total d'images encodées : {len(encoded_dataset)}")
