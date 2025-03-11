@@ -11,9 +11,9 @@ class Auto_Encoder(nn.Module):
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=4, stride=2, padding=1),  # 128x128
             nn.LeakyReLU(),
-            utils.ResNetBlock(64,64),
+            utils.ResNetBlock(64, 64, temb_channels=0),
             utils.AttentionBlock(64),
-            utils.ResNetBlock(64,64),
+            utils.ResNetBlock(64, 64, temb_channels=0),
             nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),  # 64x64
             nn.LeakyReLU(),
 #            nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1),  # 32x32
@@ -28,9 +28,9 @@ class Auto_Encoder(nn.Module):
             
             nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),  # 128x128
             nn.LeakyReLU(),
-            utils.ResNetBlock(64,64),
+            utils.ResNetBlock(64, 64, temb_channels=0),
             utils.AttentionBlock(64),
-            utils.ResNetBlock(64,64),
+            utils.ResNetBlock(64, 64, temb_channels=0),
 #            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),  # 256x256
 #            nn.ReLU(),
             nn.Conv2d(64, 3, kernel_size=3, stride=1, padding=1),  # Output 3 channels
