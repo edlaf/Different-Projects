@@ -7,42 +7,51 @@ class Auto_Encoder(nn.Module):
     def __init__(self, latent_channels=16, perceptual_weight = 0.1):
         super(Auto_Encoder, self).__init__()
 
-        # Encoder : Réduit la taille 256x256x3 → 32x32xlatent_channels
-        self.encoder = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=4, stride=2, padding=1),  # 128x128
+        # Encoder : 256x256x3 → 32x32xlatent_channels
+        self.encoder_1 = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=4, stride=2, padding=1),
             nn.LeakyReLU(),
-            utils.ResNetBlock(64, 64, temb_channels=0),
-            utils.AttentionBlock(64),
-            utils.ResNetBlock(64, 64, temb_channels=0),
-            nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),  # 64x64
+            nn.Conv2d(64, 64, kernel_size=1))
+        self.resnet_1  = utils.ResNetBlock(64, 64, temb_channels=0)
+        self.attn_1    = utils.AttentionBlock(64)
+        self.resnet_2  = utils.ResNetBlock(64, 64, temb_channels=0)
+        self.encoder_2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1),
             nn.LeakyReLU(),
-#            nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1),  # 32x32
-#            nn.ReLU(),
-            nn.Conv2d(128, latent_channels, kernel_size=3, stride=1, padding=1)  # 32x32xlatent_channels
+            nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),
+            nn.LeakyReLU(),
+            nn.Conv2d(128, latent_channels, kernel_size=3, stride=1, padding=1)
         )
 
-        # Decoder : Reconstruit l'image 32x32xlatent_channels → 256x256x3
-        self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(latent_channels, 128, kernel_size=4, stride=2, padding=1),  # 64x64
+        # Decoder : 32x32xlatent_channels → 256x256x3
+        self.decoder_1 = nn.Sequential(
+            nn.ConvTranspose2d(latent_channels, 128, kernel_size=4, stride=2, padding=1),
             nn.LeakyReLU(),
-            
-            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),  # 128x128
+            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),
             nn.LeakyReLU(),
-            utils.ResNetBlock(64, 64, temb_channels=0),
-            utils.AttentionBlock(64),
-            utils.ResNetBlock(64, 64, temb_channels=0),
-#            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),  # 256x256
-#            nn.ReLU(),
-            nn.Conv2d(64, 3, kernel_size=3, stride=1, padding=1),  # Output 3 channels
-            nn.Sigmoid()  # Normalisation entre 0 et 1
+            nn.Conv2d(64, 64, kernel_size=1))
+        self.resnet_3 = utils.ResNetBlock(64, 64, temb_channels=0)
+        self.attn_2 = utils.AttentionBlock(64)
+        self.resnet_4 = utils.ResNetBlock(64, 64, temb_channels=0)
+        self.decoder_2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1),
+            nn.LeakyReLU(),
+            nn.Conv2d(64, 3, kernel_size=3, stride=1, padding=1),
+            nn.Sigmoid()
         )
         
         self.perceptual_weight = perceptual_weight
         self.lpips_loss = LPIPS().eval()
 
     def forward(self, x):
-        latent = self.encoder(x)
-        reconstructed = self.decoder(latent)
+        latent_1 = self.encoder_1(x)
+        latent_2 = self.resnet_1(latent_1, 0)
+        latent_3 = self.attn_1(latent_2)
+        latent_4 = self.resnet_2(latent_3,0)
+        latent_5 = self.encoder_2(latent_4)
+        latent_6 = self.decoder_1(latent_5)
+        latent_6 = self.resnet_3(latent_6)
+        latent_7 = self.attn_2(latent_6)
+        latent_8 = self.resnet_4(latent_7)
+        reconstructed = self.decoder_2(latent_8)
         return reconstructed
     
     def loss(self, x):
