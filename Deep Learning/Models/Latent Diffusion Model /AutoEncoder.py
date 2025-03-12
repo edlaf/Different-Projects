@@ -4,7 +4,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split, TensorDataset
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
-
+import torch.nn as nn
 
 def load_data(path,batch_size = 128):
     transform = transforms.Compose([
@@ -62,7 +62,7 @@ def train(model, trainloader, optimizer, testloader, device, nb_epochs=10, displ
 
     test_images, _ = next(iter(testloader))
     test_images = test_images.to(device)
-
+    loss = nn.MSELoss()
     for epoch in range(nb_epochs):
         model.train()
         total_loss = 0.0
@@ -95,7 +95,7 @@ def train(model, trainloader, optimizer, testloader, device, nb_epochs=10, displ
 def test(model, criterion, testloader, device):
     total_test_loss = 0.0
     model.eval()
-    criterion = model.loss_2
+    criterion = nn.MSELoss()
     with torch.no_grad():
         for images, _ in tqdm(testloader):
             images = images.to(device)
