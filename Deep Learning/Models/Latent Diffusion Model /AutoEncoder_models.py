@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 import models_utils as utils
-from taming.modules.losses.lpips import LPIPS
+#from taming.modules.losses.lpips import LPIPS
 
 class Auto_Encoder(nn.Module):
     def __init__(self, latent_channels=3, perceptual_weight=0.1):
@@ -50,7 +50,7 @@ class Auto_Encoder(nn.Module):
         )
         
         self.perceptual_weight = perceptual_weight
-        self.lpips_loss = LPIPS().eval()
+        #self.lpips_loss = LPIPS().eval()
 
     def forward(self, x):
         temb = torch.zeros(x.size(0), 512, device=x.device)
@@ -103,13 +103,13 @@ class Auto_Encoder(nn.Module):
     def loss(self, x):
         reconstructed = self.forward(x)
         nll_loss = F.l1_loss(reconstructed, x)
-        perceptual_loss = self.lpips_loss(x, reconstructed).mean()
-        total_loss = nll_loss + self.perceptual_weight * perceptual_loss
+        #perceptual_loss = self.lpips_loss(x, reconstructed).mean()
+        total_loss = nll_loss #+ self.perceptual_weight * perceptual_loss
         return total_loss
     
     def loss_2(self, x, reconstructed):
         nll_loss = F.l1_loss(reconstructed, x)
-        perceptual_loss = self.lpips_loss(x, reconstructed).mean()
-        total_loss = nll_loss + self.perceptual_weight * perceptual_loss
+        #perceptual_loss = self.lpips_loss(x, reconstructed).mean()
+        total_loss = nll_loss# + self.perceptual_weight * perceptual_loss
         return total_loss
 
