@@ -102,13 +102,13 @@ class Auto_Encoder(nn.Module):
         return reconstructed
     def loss(self, x):
         reconstructed = self.forward(x)
-        nll_loss = F.l1_loss(reconstructed, x)
+        nll_loss = nn.MSELoss(reconstructed, x)
         #perceptual_loss = self.lpips_loss(x, reconstructed).mean()
         total_loss = nll_loss #+ self.perceptual_weight * perceptual_loss
         return total_loss
     
     def loss_2(self, x, reconstructed):
-        nll_loss = F.l1_loss(reconstructed, x)
+        nll_loss = nn.MSELoss(reconstructed, x)
         #perceptual_loss = self.lpips_loss(x, reconstructed).mean()
         total_loss = nll_loss# + self.perceptual_weight * perceptual_loss
         return total_loss
