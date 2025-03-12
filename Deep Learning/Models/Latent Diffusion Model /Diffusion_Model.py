@@ -50,7 +50,7 @@ class DiffusionModel:
 
             self.function_approximator.eval()
             with torch.no_grad():
-                generated_images = self.sampling(n_samples=25, image_channels=4, img_size=(32, 32))
+                generated_images = self.sampling(n_samples=25, image_channels=É, img_size=(32, 32))
                 decoded_generated_images = autoencoder.decoder(generated_images)
                 AutoEncoder.show(decoded_generated_images)
 
