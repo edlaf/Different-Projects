@@ -62,7 +62,7 @@ def train(model, trainloader, optimizer, testloader, device, nb_epochs=10, displ
 
     test_images, _ = next(iter(testloader))
     test_images = test_images.to(device)
-    loss = nn.MSELoss()
+    criterion = nn.MSELoss()
     for epoch in range(nb_epochs):
         model.train()
         total_loss = 0.0
@@ -71,7 +71,8 @@ def train(model, trainloader, optimizer, testloader, device, nb_epochs=10, displ
 
         for images, _ in progress_bar:
             images = images.to(device)
-            loss = model.loss(images)
+            reconstructed_images = model(images)
+            loss = criterion(images, reconstructed_images)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
