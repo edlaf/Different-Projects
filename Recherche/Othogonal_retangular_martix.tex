@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{graphicx} % Requis pour l'insertion d'images
+\usepackage{geometry}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\geometry{hmargin=2.5cm,vmargin=1.3cm}
+\title{Quasi-Orthogonal Matrix Generation}
+\author{Edouard Laferté, Elias Chouik}
+\date{March 2025}
+
+\begin{document}
+
+\maketitle
+
+We focus on the generation of quasi-Orthogonal matrix, for computing purposes. For instance,
+these matrices are used to do projection in high dimension. In particular, we use these matrices
+in the sparce projection theorem, where the quasi-orthogonal matrix is construted as the limit of
+a random matrix.
+\\
+\\
+\textbf{Definition: }$\epsilon$ Quasi-orthogonal matrix.
+\\
+\\
+A $\epsilon$ Quasi-orthogonal matrix is a matrix $A\in \mathcal M_{m,n}$ such that:
+$$||A^TA-I_{n}||_{\infty}\leq \epsilon$$
+This implies that $$\forall j \in [1,n], \ 1-\epsilon \leq ||A_j^TA_j||_{\infty}\leq 1+\epsilon$$
+and $$\forall (i,j) \in [1,n]^2, \ i\neq j, ||A_i^TA_j||_{\infty}\leq \epsilon$$
+
+\section{Random matrices}
+We first focus on the generation of such matrices using random matrices.
+\\
+\\
+\textbf{Proposition:}
+Let $(X_1,...,X_n)\in \mathbb R^n_m$ random variables indentically distributed and of covariance matrice $I_n$, with a 
+probability distribution that have a mean and a variance.
+Let name $X^{(n)}$ the matrix:
+$$X^{(n)} = (X_1|\dots|X_n)$$
+We have using the \textit{Law of Large Number}
+$$X^{(n)}^TX^{(n)}\underset{n \xrightarrow{} \infty}{\xrightarrow{}} I_n \ \text{a.s}$$
+\\
+\\
+It is thus rather easy to create a quasi-orthogonal matrix. Sample each $X_i$ from a distribution with the past criterion
+and its asymptotic covariance matrix will have the needed caracterists almost certainly.
+\\
+\\
+\textbf{Proposition:}
+The normal law is the best probability distribution possible considering all distribution having an infinit number of moment.
+\\
+\\
+\textit{Proof:}
+The proof is direct using Edgeworth serie formula with a probability that has a different cumulant than the normal law.
+\\
+\\
+Thus, we can see that it is not possible to find a better probability to sample from if we stick to this strategy. However,
+other theorems exists surrounding random matrices such as the quarter-circle law theorem for semi-definitve matrix or the
+Marchenko-Pastur theorem.
+\section{Non Random technics}
+The set of matrix that are $0$-quasi-orthogonal matrix is called the Stiefeld manifold. We need to find some caracterists about this
+manifold.
+\end{document}
